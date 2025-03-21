@@ -9,7 +9,7 @@
         @dblclick="resetTaskTime(task)"
         :class="{ active: activeTask === task }"
       >
-        <b>{{ task }}</b><br>{{ formatTime(taskTimes[task] || 0) }}
+        <b>{{ task }}</b><br>{{ formatTime(task) }}
       </button>
     </div>
   </div>
@@ -20,42 +20,54 @@ export default {
   data() {
     return {
       tasks: JSON.parse(localStorage.getItem("tasks")) || ["Meetings", "Project A", "Project B", "Lunch", "Break", "Misc"],
-      taskTimes: JSON.parse(localStorage.getItem("taskTimes")) || {},
+      taskData: JSON.parse(localStorage.getItem("taskData")) || {},
       activeTask: null,
-      timer: null,
+      taskTemplate: {
+        start_ts: null,
+        total_time: 0
+      }
     };
   },
   methods: {
     toggleTask(task) {
+      // stop the active task no matter what
       if (this.activeTask) {
-        clearInterval(this.timer);
+        const activeTaskObj = this.taskData[this.activeTask]
+        activeTaskObj.total_time += Math.floor((new Date().getTime() - activeTaskObj.start_ts) / 1000)
+        this.activeTask = null
+      }
+      
+      // if the task clicked wasn't the active task then start the task
+      if(this.activeTask != task) {
+        if(!this.taskData[task]) this.taskData[task] = JSON.parse(JSON.stringify(this.taskTemplate))
+        const taskObj = this.taskData[task]
+        taskObj.start_ts = new Date().getTime()
+        this.activeTask = task
       }
 
-      this.activeTask = task;
-      if (!this.taskTimes[task]) {
-        this.taskTimes[task] = 0;
-      }
-
-      this.timer = setInterval(() => {
-        this.taskTimes[task]++;
-        localStorage.setItem("taskTimes", JSON.stringify(this.taskTimes));
-      }, 1000);
+      localStorage.setItem("taskData", JSON.stringify(this.taskData))
     },
     resetTaskTime(task) {
-      // stop timer if this task is currently active
-      if (this.activeTask == task) {
-        this.activeTask = null
-        clearInterval(this.timer)
-      }
-      // set task's time to 0
-      this.taskTimes[task] = 0
-      // write to local storage
-      localStorage.setItem("taskTimes", JSON.stringify(this.taskTimes))
+      const taskObj = this.taskData[task]
+      taskObj.start_ts = 0
+      taskObj.total_time = 0
+
+      localStorage.setItem("taskData", JSON.stringify(this.taskData));
     },
-    formatTime(seconds) {
-      const h = Math.floor(seconds / 3600);
-      const m = Math.floor((seconds % 3600) / 60);
-      const s = seconds % 60;
+    formatTime(task) {
+      let totalSeconds = 0
+      const taskObj = this.taskData[task]
+
+      if (taskObj) {
+        const now = new Date().getTime()
+        const startTs = taskObj.start_ts
+        const endTs = startTs != 0 ? now : 0
+        totalSeconds = taskObj.total_time + Math.floor((endTs - startTs) / 1000)
+      }
+
+      const h = Math.floor(totalSeconds / 3600);
+      const m = Math.floor((totalSeconds % 3600) / 60);
+      const s = totalSeconds % 60;
       return `${h}h ${m}m ${s}s`;
     },
     showReport() {
@@ -65,9 +77,6 @@ export default {
           .join("\n")
       );
     }
-  },
-  beforeUnmount() {
-    clearInterval(this.timer);
   }
 };
 </script>
