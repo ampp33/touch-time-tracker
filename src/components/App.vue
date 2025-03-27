@@ -9,7 +9,7 @@
         @dblclick="resetTaskTime(task)"
         :class="{ active: activeTask === task }"
       >
-        <b>{{ task }}</b><br>{{ formatTime(task) }}
+        <b>{{ task }}</b><br>{{ formatTime(task, tick) }}
       </button>
     </div>
   </div>
@@ -21,6 +21,7 @@ export default {
     return {
       tasks: JSON.parse(localStorage.getItem("tasks")) || ["Meetings", "Project A", "Project B", "Lunch", "Break", "Misc"],
       taskData: JSON.parse(localStorage.getItem("taskData")) || {},
+      tick: 0,
       activeTask: null,
       taskTemplate: {
         start_ts: null,
@@ -28,17 +29,27 @@ export default {
       }
     };
   },
+  mounted() {
+    console.log('asdf')
+    setInterval(() => {
+        this.tick++
+    }, 1000)
+  },
   methods: {
-    toggleTask(task) {
-      // stop the active task no matter what
+    toggleTask(task, tick) {
+      // check if the task clicked is the current active task
+      const activeTaskWasClicked = this.activeTask == task
+
+      // whatever task was running, turn it off
       if (this.activeTask) {
         const activeTaskObj = this.taskData[this.activeTask]
-        activeTaskObj.total_time += Math.floor((new Date().getTime() - activeTaskObj.start_ts) / 1000)
+        if(activeTaskObj.start_ts > 0) activeTaskObj.total_time += Math.floor((new Date().getTime() - activeTaskObj.start_ts) / 1000)
+        activeTaskObj.start_ts = 0
         this.activeTask = null
       }
       
-      // if the task clicked wasn't the active task then start the task
-      if(this.activeTask != task) {
+      // if the task that was selected was not active then start it up
+      if(!activeTaskWasClicked) {
         if(!this.taskData[task]) this.taskData[task] = JSON.parse(JSON.stringify(this.taskTemplate))
         const taskObj = this.taskData[task]
         taskObj.start_ts = new Date().getTime()

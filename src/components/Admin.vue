@@ -29,9 +29,12 @@ export default {
       alert("Tasks updated!");
     },
     resetTimers() {
-      const taskTimes = JSON.parse(localStorage.getItem("taskTimes"))
-      for(const taskName in taskTimes) taskTimes[taskName] = 0
-      localStorage.setItem("taskTimes", JSON.stringify(taskTimes))
+      const taskData = JSON.parse(localStorage.getItem("taskData"))
+      for(const task in taskData) {
+        taskData[task].start_ts = 0
+        taskData[task].total_time = 0
+      }
+      localStorage.setItem("taskData", JSON.stringify(taskData))
     }
   }
 };
