@@ -1,6 +1,6 @@
 <template>
   <div class="container">
-    <router-link to="/admin"><button class="admin-btn">Admin</button></router-link>
+    <router-link to="/admin"><button class="admin-btn">Admin - {{ totalTime(tick) }}</button></router-link>
     <div class="grid">
       <button 
         v-for="task in tasks" 
@@ -76,10 +76,19 @@ export default {
         totalSeconds = taskObj.total_time + Math.floor((endTs - startTs) / 1000)
       }
 
+      return this.formatTimeString(totalSeconds)
+    },
+    formatTimeString(totalSeconds) {
       const h = Math.floor(totalSeconds / 3600);
       const m = Math.floor((totalSeconds % 3600) / 60);
       const s = totalSeconds % 60;
       return `${h}h ${m}m ${s}s`;
+    },
+    totalTime(tick) {
+      return this.formatTimeString(Object.values(this.taskData).reduce((t, c) => {
+        if(c.start_ts != 0) return t + (c.total_time + Math.floor((new Date().getTime() - c.start_ts) / 1000))
+        return t + c.total_time
+      }, 0))
     },
     showReport() {
       alert(
