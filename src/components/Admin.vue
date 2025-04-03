@@ -35,7 +35,7 @@ export default {
     },
     removeTask(index) {
       this.tasks.splice(index, 1)
-    }
+    },
     saveTasks() {
       localStorage.setItem("tasks", JSON.stringify(this.tasks));
       alert("Tasks updated!");
