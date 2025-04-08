@@ -4,6 +4,11 @@
     <div class="task-list">
       <div v-for="(task, index) in tasks" :key="index">
         <input v-model="tasks[index]" />
+        <!-- <input v-model="taskData[tasks[index]]" /> -->
+        <button class="danger-button" @click="removeTask(index)">-</button>
+      </div>
+      <div>
+        <button @click="addTask()">+</button>
       </div>
     </div>
     <div>
@@ -20,10 +25,17 @@
 export default {
   data() {
     return {
-      tasks: JSON.parse(localStorage.getItem("tasks")) || ["Meetings", "Project A", "Project B", "Lunch", "Break", "Misc"]
+      tasks: JSON.parse(localStorage.getItem("tasks")) || ["Meetings", "Project A", "Project B", "Lunch", "Break", "Misc"],
+      taskData: JSON.parse(localStorage.getItem("taskData")) || {}
     };
   },
   methods: {
+    addTask() {
+      this.tasks.push('')
+    },
+    removeTask(index) {
+      this.tasks.splice(index, 1)
+    },
     saveTasks() {
       localStorage.setItem("tasks", JSON.stringify(this.tasks));
       alert("Tasks updated!");
@@ -35,7 +47,13 @@ export default {
         taskData[task].total_time = 0
       }
       localStorage.setItem("taskData", JSON.stringify(taskData))
-    }
+    },
+    formatTimeString(totalSeconds) {
+      const h = Math.floor(totalSeconds / 3600);
+      const m = Math.floor((totalSeconds % 3600) / 60);
+      const s = totalSeconds % 60;
+      return `${h}h ${m}m ${s}s`;
+    },
   }
 };
 </script>
