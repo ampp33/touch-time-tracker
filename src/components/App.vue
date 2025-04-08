@@ -22,7 +22,7 @@ export default {
       tasks: JSON.parse(localStorage.getItem("tasks")) || ["Meetings", "Project A", "Project B", "Lunch", "Break", "Misc"],
       taskData: JSON.parse(localStorage.getItem("taskData")) || {},
       tick: 0,
-      activeTask: null,
+      activeTask: localStorage.getItem("activeTask"),
       taskTemplate: {
         start_ts: null,
         total_time: 0
@@ -57,6 +57,7 @@ export default {
       }
 
       localStorage.setItem("taskData", JSON.stringify(this.taskData))
+      localStorage.setItem("activeTask", this.activeTask)
     },
     resetTaskTime(task) {
       const taskObj = this.taskData[task]
