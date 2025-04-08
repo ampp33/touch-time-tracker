@@ -85,9 +85,12 @@ export default {
       return `${h}h ${m}m ${s}s`;
     },
     totalTime(tick) {
-      return this.formatTimeString(Object.values(this.taskData).reduce((t, c) => {
-        if(c.start_ts != 0) return t + (c.total_time + Math.floor((new Date().getTime() - c.start_ts) / 1000))
-        return t + c.total_time
+      return this.formatTimeString(this.tasks.map(task => this.taskData[task]).reduce((t, c) => {
+        if(c) {
+          if(c.start_ts != 0) return t + (c.total_time + Math.floor((new Date().getTime() - c.start_ts) / 1000))
+          return t + c.total_time
+        }
+        return 0
       }, 0))
     },
     showReport() {

@@ -34,6 +34,7 @@ export default {
       this.tasks.push('')
     },
     removeTask(index) {
+      if(localStorage.getItem("activeTask") == this.tasks[index]) localStorage.removeItem("activeTask")
       this.tasks.splice(index, 1)
     },
     saveTasks() {
@@ -47,6 +48,7 @@ export default {
         taskData[task].total_time = 0
       }
       localStorage.setItem("taskData", JSON.stringify(taskData))
+      localStorage.removeItem("activeTask")
     },
     formatTimeString(totalSeconds) {
       const h = Math.floor(totalSeconds / 3600);
