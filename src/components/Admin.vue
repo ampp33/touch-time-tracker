@@ -36,7 +36,6 @@ export default {
     },
     saveTasks() {
       localStorage.setItem("tasks", JSON.stringify(this.tasks));
-      alert("Tasks updated!");
     },
     resetTimers() {
       const taskData = JSON.parse(localStorage.getItem("taskData"))

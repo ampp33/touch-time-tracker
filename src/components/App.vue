@@ -16,7 +16,7 @@
         role="button"
         tabindex="0"
         :aria-pressed="activeTask === task"
-        :class="{ active: activeTask === task, editing: editingTask === task }"
+        :class="{ active: activeTask === task, editing: editingTask === task, pressing: pressingTask === task }"
         @pointerdown="onPointerDown(task, $event)"
         @pointermove="onPointerMove($event)"
         @pointerup="onPointerUp(task)"
@@ -67,8 +67,9 @@ export default {
       },
       editingTask: null,
       editingText: "",
+      pressingTask: null,
       longPressTimer: null,
-      longPressTriggered: false,
+      longPressReady: false,
       pendingTapTimeout: null,
       lastTapTime: {},
       pointerStartX: 0,
@@ -88,13 +89,17 @@ export default {
   methods: {
     onPointerDown(task, e) {
       if (this.editingTask) return
-      this.longPressTriggered = false
+      this.longPressReady = false
       this.pointerStartX = e.clientX
       this.pointerStartY = e.clientY
       clearTimeout(this.longPressTimer)
+      // Only flag readiness here - don't touch focus/DOM. Mobile browsers
+      // (iOS Safari especially) only open the soft keyboard for a focus()
+      // call made synchronously inside a real user-gesture event handler,
+      // not one deferred through a setTimeout callback like this one.
       this.longPressTimer = setTimeout(() => {
-        this.longPressTriggered = true
-        this.startRename(task)
+        this.longPressReady = true
+        this.pressingTask = task
       }, LONG_PRESS_MS)
     },
     onPointerMove(e) {
@@ -104,18 +109,24 @@ export default {
       if (Math.hypot(dx, dy) > MOVE_THRESHOLD) {
         clearTimeout(this.longPressTimer)
         this.longPressTimer = null
+        this.longPressReady = false
+        this.pressingTask = null
       }
     },
     onPointerLeave() {
       clearTimeout(this.longPressTimer)
       this.longPressTimer = null
+      this.longPressReady = false
+      this.pressingTask = null
     },
     onPointerUp(task) {
       clearTimeout(this.longPressTimer)
       this.longPressTimer = null
+      this.pressingTask = null
 
-      if (this.longPressTriggered) {
-        this.longPressTriggered = false
+      if (this.longPressReady) {
+        this.longPressReady = false
+        this.startRename(task)
         return
       }
 
@@ -361,6 +372,11 @@ export default {
 
 .task.active .task-time {
   color: var(--color-accent-contrast);
+}
+
+.task.pressing {
+  border-color: var(--color-accent-2);
+  box-shadow: 0 0 0 3px var(--color-accent-2-soft);
 }
 
 .task.editing {
